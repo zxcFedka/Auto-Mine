@@ -58,8 +58,34 @@ local Dropdown = MainTab:CreateDropdown({
     MultipleOptions = false,
     Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
-        
+        print(Options)
     end,
 })
 
-local SettingsTab = Window:CreateTab("Settings", nil)
+local SettingsTab = Window:CreateTab("Settings", nil) -- Title, Image
+local SettingsSection = MainTab:CreateSection("SettingsSection")
+SettingsSection:Set("Theme")
+
+local Themes = {
+    "Default";
+    "Amber Glow";
+    "Amethyst";
+    "Bloom";
+    "Dark Blue";
+    "Green";
+    "Light";
+    "Ocean";
+    "Serenity";
+}
+
+local Dropdown = SettingsTab:CreateDropdown({
+    Name = "Theme",
+    Options = Themes,
+    CurrentOption = "Default",
+    MultipleOptions = false,
+    Flag = "Dropdown2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Options)
+        print(Options)
+        Window.ModifyTheme()
+    end,
+})
