@@ -63,7 +63,7 @@ local Dropdown = MainTab:CreateDropdown({
 })
 
 local SettingsTab = Window:CreateTab("Settings", nil) -- Title, Image
-local SettingsSection = MainTab:CreateSection("SettingsSection")
+local SettingsSection = SettingsTab:CreateSection("SettingsSection")
 SettingsSection:Set("Theme")
 
 local Themes = {
@@ -85,11 +85,6 @@ local Dropdown = SettingsTab:CreateDropdown({
     MultipleOptions = false,
     Flag = "Dropdown2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
-        
-        for i,v in Options do
-            print(i,v)
-        end
-
-        Window.ModifyTheme()
+        Window.ModifyTheme(Options)
     end,
 })
