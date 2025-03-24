@@ -111,7 +111,7 @@ local Dropdown = MainTab:CreateDropdown({
 
 local Divider = MainTab:CreateDivider()
 
-local BlockWorlds = workspace:WaitForChild("_THINGS").BlockWorlds
+local BlockWorlds = workspace:WaitForChild("__THINGS").BlockWorlds
 
 local HighlightXrayName = "Xrayhighlight"
 
@@ -161,7 +161,7 @@ local Toggle = MainTab:CreateToggle({
             end)
         end
     end,
- })
+})
 
 local SettingsTab = Window:CreateTab("Settings", nil) -- Title, Image
 local SettingsSection = SettingsTab:CreateSection("SettingsSection")
