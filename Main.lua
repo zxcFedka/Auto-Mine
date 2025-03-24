@@ -4,6 +4,8 @@ local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/Siri
 
 print("Loaded")
 
+local Button
+
 local Window = Rayfield:CreateWindow({
     Name = "Auto Mine",
     Icon = 0,
@@ -54,9 +56,14 @@ local DropdownOre = MainTab:CreateDropdown({
     MultipleOptions = false,
     Flag = "Dropdown1",
     Callback = function(Option)
-        FindingOre = Option
-        if IsFarming then -- Если фарм уже запущен, перезапускаем его для обновления xray
-            farmingToggled(true) -- Перезапускаем фарм с новой рудой
+        for i,choosedore in Option do
+            print(choosedore)
+            clearHighlightsForLocation()
+            FindingOre = choosedore
+            if IsFarming then
+                IsFarming = false
+                Button:Set("Start Farming")
+            end
         end
     end,
 })
@@ -121,14 +128,15 @@ local HighlightXrayName = "Xrayhighlight"
 local debounce = false
 local IsFarming = false
 
-local Button = MainTab:CreateButton({
+Button = MainTab:CreateButton({
     Name = "Start Farming",
     Callback = function()
         farmingToggled(IsFarming)
     end,
 })
 
-local function clearHighlightsForLocation()
+function clearHighlightsForLocation()
+    print("Clear")
     if CurrentLocation then
         if FarmType == 1 then
             local Path = "Blocks_" .. CurrentLocation
@@ -144,6 +152,7 @@ local function clearHighlightsForLocation()
     end
 end
 
+local AddedBlocks = {}
 
 function farmingToggled(IsToggled)
     if debounce then return end
@@ -154,8 +163,6 @@ function farmingToggled(IsToggled)
         debounce = false
     end)
 
-    clearHighlightsForLocation() -- Очищаем хайлайты в начале функции
-
     if IsFarming then
         Button:Set("Stop Farming")
         if CurrentLocation then
@@ -163,21 +170,22 @@ function farmingToggled(IsToggled)
                 local Path = "Blocks_" .. CurrentLocation
                 if BlockWorlds:FindFirstChild(Path) then
                     local Blocks = BlockWorlds:FindFirstChild(Path)
-                    for _, block in ipairs(Blocks:GetChildren()) do
+
+                    for i,block in AddedBlocks do
                         if block then
-                            if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                                local Highlight = Instance.new("Highlight", block)
-                                Highlight.Name = HighlightXrayName
-                                Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            if block:FindFirstChild(HighlightXrayName) then
+                                block:FindFirstChild(HighlightXrayName):Destroy()
                             end
+
+                            local Highlight = Instance.new("Highlight", block)
+                            Highlight.Name = HighlightXrayName
+                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                         end
                     end
 
                     Blocks.ChildAdded:Connect(function(block)
                         if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                            local Highlight = Instance.new("Highlight", block)
-                            Highlight.Name = HighlightXrayName
-                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            AddedBlocks[block]= true
                         end
                     end)
                 end
