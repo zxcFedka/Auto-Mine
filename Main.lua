@@ -47,18 +47,21 @@ local Ores = {
 
 local FindingOre = "Sapphire"
 
-local DropdownOre = MainTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
+local DropdownOre = MainTab:CreateDropdown({
     Name = "Mining Ore",
     Options = Ores,
-    CurrentOption = "Sapphire", -- Исправлено: убраны {}
+    CurrentOption = "Sapphire",
     MultipleOptions = false,
     Flag = "Dropdown1",
-    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
-        FindingOre = Option -- Исправлено: прямое присвоение
+    Callback = function(Option)
+        FindingOre = Option
+        if IsFarming then -- Если фарм уже запущен, перезапускаем его для обновления xray
+            farmingToggled(true) -- Перезапускаем фарм с новой рудой
+        end
     end,
 })
 
-local Divider1 = MainTab:CreateDivider() -- Переименовал переменную, чтобы не было конфликта имен
+local Divider1 = MainTab:CreateDivider()
 
 local Types = {
     [1] = "Xray",
@@ -67,14 +70,14 @@ local Types = {
 
 local FarmType = 1
 
-local DropdownType = MainTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
+local DropdownType = MainTab:CreateDropdown({
     Name = "Mining Type",
     Options = Types,
-    CurrentOption = Types[FarmType], -- Исправлено: убраны {}
+    CurrentOption = Types[FarmType],
     MultipleOptions = false,
     Flag = "Dropdown2",
-    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
-        for index, typeName in pairs(Types) do -- Лучше использовать pairs для словарей
+    Callback = function(Option)
+        for index, typeName in pairs(Types) do
             if typeName == Option then
                 FarmType = index
             end
@@ -82,7 +85,7 @@ local DropdownType = MainTab:CreateDropdown({ -- Переименовал пер
     end,
 })
 
-local Divider2 = MainTab:CreateDivider() -- Переименовал переменную, чтобы не было конфликта имен
+local Divider2 = MainTab:CreateDivider()
 
 local Locations = {
     [1] = "Mining Ore",
@@ -94,14 +97,14 @@ local Locations = {
 
 local CurrentLocation = 1
 
-local DropdownLocation = MainTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
+local DropdownLocation = MainTab:CreateDropdown({
     Name = "Location",
     Options = Locations,
-    CurrentOption = Locations[CurrentLocation], -- Исправлено: убраны {}
+    CurrentOption = Locations[CurrentLocation],
     MultipleOptions = false,
     Flag = "Dropdown3",
-    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
-        for index, locationName in pairs(Locations) do -- Лучше использовать pairs для словарей
+    Callback = function(Option)
+        for index, locationName in pairs(Locations) do
             if locationName == Option then
                 CurrentLocation = index
             end
@@ -109,7 +112,7 @@ local DropdownLocation = MainTab:CreateDropdown({ -- Переименовал п
     end,
 })
 
-local Divider3 = MainTab:CreateDivider() -- Переименовал переменную, чтобы не было конфликта имен
+local Divider3 = MainTab:CreateDivider()
 
 local BlockWorlds = workspace:WaitForChild("__THINGS").BlockWorlds
 
@@ -125,13 +128,13 @@ local Button = MainTab:CreateButton({
     end,
 })
 
-local function clearHighlightsForLocation() -- Функция для очистки хайлайтов, чтобы избежать дублирования кода
+local function clearHighlightsForLocation()
     if CurrentLocation then
-        if FarmType == 1 then -- Проверка FarmType здесь избыточна, так как функция используется только для Xray
+        if FarmType == 1 then
             local Path = "Blocks_" .. CurrentLocation
             if BlockWorlds:FindFirstChild(Path) then
                 local Blocks = BlockWorlds:FindFirstChild(Path)
-                for _, block in ipairs(Blocks:GetChildren()) do -- ipairs для массивов
+                for _, block in ipairs(Blocks:GetChildren()) do
                     if block and block:FindFirstChild(HighlightXrayName) then
                         block:FindFirstChild(HighlightXrayName):Destroy()
                     end
@@ -143,23 +146,24 @@ end
 
 
 function farmingToggled(IsToggled)
-    if debounce then return end -- Упрощенная проверка debounce
+    if debounce then return end
     debounce = true
     IsFarming = not IsFarming
 
-    task.delay(0.2, function() -- Уменьшил задержку debounce
+    task.delay(0.2, function()
         debounce = false
     end)
 
-    if IsFarming then -- Исправлено: проверка IsFarming, а не IsToggled
+    clearHighlightsForLocation() -- Очищаем хайлайты в начале функции
+
+    if IsFarming then
         Button:Set("Stop Farming")
-        clearHighlightsForLocation() -- Очищаем старые хайлайты перед добавлением новых
         if CurrentLocation then
             if FarmType == 1 then
                 local Path = "Blocks_" .. CurrentLocation
                 if BlockWorlds:FindFirstChild(Path) then
                     local Blocks = BlockWorlds:FindFirstChild(Path)
-                    for _, block in ipairs(Blocks:GetChildren()) do -- ipairs для массивов
+                    for _, block in ipairs(Blocks:GetChildren()) do
                         if block then
                             if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
                                 local Highlight = Instance.new("Highlight", block)
@@ -181,7 +185,7 @@ function farmingToggled(IsToggled)
         end
     else
         Button:Set("Start Farming")
-        clearHighlightsForLocation() -- Очищаем хайлайты при остановке фарма
+        clearHighlightsForLocation()
     end
 end
 
@@ -201,13 +205,13 @@ local Themes = {
     "Serenity",
 }
 
-local DropdownTheme = SettingsTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
+local DropdownTheme = SettingsTab:CreateDropdown({
     Name = "Theme",
     Options = Themes,
     CurrentOption = "Default",
     MultipleOptions = false,
     Flag = "Dropdown4",
-    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
-        Window:ModifyTheme(Option) -- Исправлено: прямое использование Option
+    Callback = function(Option)
+        Window:ModifyTheme(Option)
     end,
 })
