@@ -2,6 +2,8 @@ if not game.PlaceId == 8737899170 then return end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+print("Loaded")
+
 local Window = Rayfield:CreateWindow({
     Name = "Auto Mine",
     Icon = 0,
