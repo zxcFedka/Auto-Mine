@@ -1,6 +1,6 @@
 if not game.PlaceId == 8737899170 then return end
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
 
 print("Loaded")
 
@@ -168,6 +168,14 @@ function farmingToggled(IsToggled)
                             end
                         end
                     end
+
+                    Blocks.ChildAdded:Connect(function(block)
+                        if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
+                            local Highlight = Instance.new("Highlight", block)
+                            Highlight.Name = HighlightXrayName
+                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        end
+                    end)
                 end
             end
         end
