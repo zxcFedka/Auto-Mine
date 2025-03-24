@@ -39,10 +39,20 @@ Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW 
 local Tab = Window:CreateTab("Home", nil) -- Title, Image
 local Section = Tab:CreateSection("Mine")
 Section:Set("Section Example")
+
+local Ores = {
+    "Sapphire",
+    "Ruby",
+    "Amethyst",
+    "Emerald",
+}
+
+local StandartOre = "Sapphire"
+
 local Dropdown = Tab:CreateDropdown({
-    Name = "Dropdown Example",
-    Options = {"Option 1","Option 2"},
-    CurrentOption = {"Option 1"},
+    Name = "Mining Ore",
+    Options = {Ores},
+    CurrentOption = {StandartOre},
     MultipleOptions = false,
     Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
