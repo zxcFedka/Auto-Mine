@@ -151,7 +151,6 @@ function farmingToggled(IsToggled)
         debounce = false
     end)
 
-
     if IsFarming then -- Исправлено: проверка IsFarming, а не IsToggled
         Button:Set("Stop Farming")
         clearHighlightsForLocation() -- Очищаем старые хайлайты перед добавлением новых
