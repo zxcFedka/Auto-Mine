@@ -137,11 +137,13 @@ local function farmingToggled(IsToggled)
                     end
 
                     for i, block in Blocks:GetChildren() do
-                        if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                            print("Finded")
-                            local Highlight = Instance.new("Highlight", block)
-                            Highlight.Name = Highlight
-                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        if block then
+                            if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
+                                print("Finded")
+                                local Highlight = Instance.new("Highlight", block)
+                                Highlight.Name = HighlightXrayName
+                                Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            end
                         end
                     end
                 end
