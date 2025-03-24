@@ -58,8 +58,8 @@ local Dropdown = MainTab:CreateDropdown({
     MultipleOptions = false,
     Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
-        for i, v in ipairs(Options) do
-            print(i,v)
+        for index, ore in ipairs(Options) do
+            FindingOre = ore
         end
     end,
 })
@@ -87,6 +87,8 @@ local Dropdown = SettingsTab:CreateDropdown({
     MultipleOptions = false,
     Flag = "Dropdown2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
-        Window.ModifyTheme(Options)
+        for index, theme in ipairs(Options) do
+            Window.ModifyTheme(theme)
+        end
     end,
 })
