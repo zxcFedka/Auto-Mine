@@ -121,20 +121,22 @@ local IsFarming = false
 local Button = MainTab:CreateButton({
     Name = "Start Farming",
     Callback = function()
-        if not debounce then
-            debounce = true
-            IsFarming = not IsFarming
-
-            farmingToggled(IsFarming)
-
-            task.delay(1, function()
-                debounce = false
-            end)
-        end
+        farmingToggled(IsFarming)
     end,
 })
 
 function farmingToggled(IsToggled)
+
+    if not debounce then
+        debounce = true
+        IsFarming = not IsFarming
+
+        task.delay(1, function()
+            debounce = false
+        end)
+    else
+        return
+    end
 
     if not IsToggled then
         Button:Set("Start Farming")
