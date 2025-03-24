@@ -75,7 +75,6 @@ local DropdownType = MainTab:CreateDropdown({ -- Переименовал пер
         for index, typeName in pairs(Types) do -- Лучше использовать pairs для словарей
             if typeName == Option then
                 FarmType = index
-                break -- Выходим из цикла, когда нашли соответствие
             end
         end
     end,
@@ -103,7 +102,6 @@ local DropdownLocation = MainTab:CreateDropdown({ -- Переименовал п
         for index, locationName in pairs(Locations) do -- Лучше использовать pairs для словарей
             if locationName == Option then
                 CurrentLocation = index
-                break -- Выходим из цикла, когда нашли соответствие
             end
         end
     end,
