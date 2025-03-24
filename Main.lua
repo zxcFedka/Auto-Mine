@@ -47,19 +47,57 @@ local Ores = {
     "Emerald",
 }
 
-local StandartOre = "Sapphire"
-
-local FindingOre = StandartOre
+local FindingOre = "Sapphire"
 
 local Dropdown = MainTab:CreateDropdown({
     Name = "Mining Ore",
     Options = Ores,
-    CurrentOption = {StandartOre},
+    CurrentOption = {"Sapphire"},
     MultipleOptions = false,
     Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
         for index, ore in ipairs(Options) do
             FindingOre = ore
+        end
+    end,
+})
+
+local Divider = MainTab:CreateDivider()
+
+local Types = {
+    [1] = "Xray",
+    [2]= "Auto Farm"
+}
+
+local FarmType = 1
+
+local Dropdown = MainTab:CreateDropdown({
+    Name = "Mining Type",
+    Options = Types,
+    CurrentOption = {Types[FarmType]},
+    MultipleOptions = false,
+    Flag = "Dropdown2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Options)
+        for index, farmType in pairs(Options) do
+            FarmType = index
+        end
+    end,
+})
+
+local IsFarming = false
+
+local debounce = false
+
+local Button = MainTab:CreateButton({
+    Name = "Start",
+    Callback = function()
+        if not debounce then
+            debounce = true
+            IsFarming = not IsFarming
+
+            task.delay(1,function ()
+                debounce = false
+            end)
         end
     end,
 })
@@ -85,10 +123,18 @@ local Dropdown = SettingsTab:CreateDropdown({
     Options = Themes,
     CurrentOption = "Default",
     MultipleOptions = false,
-    Flag = "Dropdown2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Flag = "Dropdown3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
         for index, theme in ipairs(Options) do
-            Window.ModifyTheme(theme)
+            Window.ModifyTheme(tostring(theme))
         end
     end,
 })
+
+local RunService = game:GetService("RunService")
+
+RunService.Heartbeat:Connect(function ()
+    if IsFarming then
+        
+    end
+end)
