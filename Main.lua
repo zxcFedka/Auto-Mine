@@ -3,40 +3,36 @@ if not game.PlaceId == 8737899170 then return end
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-Name = "Auto Mine",
-Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-LoadingTitle = "Pidaras Hub",
-LoadingSubtitle = "by zxcFedka",
-Theme = "Default",
-
-DisableRayfieldPrompts = false,
-DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
-
-ConfigurationSaving = {
-Enabled = false,
-FolderName = nil, -- Create a custom folder for your hub/game
-FileName = "Big Hub"
-},
-
-Discord = {
-Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-},
-
-KeySystem = false, -- Set this to true to use our key system
-KeySettings = {
-Title = "Untitled",
-Subtitle = "Key System",
-Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
-FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-}
+    Name = "Auto Mine",
+    Icon = 0,
+    LoadingTitle = "Pidaras Hub", -- Измени на более подходящее название, если хочешь
+    LoadingSubtitle = "by zxcFedka",
+    Theme = "Default",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = "Big Hub"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
+    },
+    KeySystem = false,
+    KeySettings = {
+        Title = "Untitled",
+        Subtitle = "Key System",
+        Note = "No method of obtaining the key is provided",
+        FileName = "Key",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"Hello"}
+    }
 })
 
-local MainTab = Window:CreateTab("Home", nil) -- Title, Image
+local MainTab = Window:CreateTab("Home", nil)
 local MineSection = MainTab:CreateSection("Mine")
 MineSection:Set("Finding Ore")
 
@@ -49,42 +45,43 @@ local Ores = {
 
 local FindingOre = "Sapphire"
 
-local Dropdown = MainTab:CreateDropdown({
+local DropdownOre = MainTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
     Name = "Mining Ore",
     Options = Ores,
-    CurrentOption = {"Sapphire"},
+    CurrentOption = "Sapphire", -- Исправлено: убраны {}
     MultipleOptions = false,
-    Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(Options)
-        for index, ore in ipairs(Options) do
-            FindingOre = ore
-        end
+    Flag = "Dropdown1",
+    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
+        FindingOre = Option -- Исправлено: прямое присвоение
     end,
 })
 
-local Divider = MainTab:CreateDivider()
+local Divider1 = MainTab:CreateDivider() -- Переименовал переменную, чтобы не было конфликта имен
 
 local Types = {
     [1] = "Xray",
-    [2]= "Auto Farm"
+    [2] = "Auto Farm"
 }
 
 local FarmType = 1
 
-local Dropdown = MainTab:CreateDropdown({
+local DropdownType = MainTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
     Name = "Mining Type",
     Options = Types,
-    CurrentOption = {Types[FarmType]},
+    CurrentOption = Types[FarmType], -- Исправлено: убраны {}
     MultipleOptions = false,
-    Flag = "Dropdown2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(Options)
-        for index, farmType in pairs(Options) do
-            FarmType = index
+    Flag = "Dropdown2",
+    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
+        for index, typeName in pairs(Types) do -- Лучше использовать pairs для словарей
+            if typeName == Option then
+                FarmType = index
+                break -- Выходим из цикла, когда нашли соответствие
+            end
         end
     end,
 })
 
-local Divider = MainTab:CreateDivider()
+local Divider2 = MainTab:CreateDivider() -- Переименовал переменную, чтобы не было конфликта имен
 
 local Locations = {
     [1] = "Mining Ore",
@@ -96,20 +93,23 @@ local Locations = {
 
 local CurrentLocation = 1
 
-local Dropdown = MainTab:CreateDropdown({
+local DropdownLocation = MainTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
     Name = "Location",
     Options = Locations,
-    CurrentOption = {Locations[CurrentLocation]},
+    CurrentOption = Locations[CurrentLocation], -- Исправлено: убраны {}
     MultipleOptions = false,
-    Flag = "Dropdown3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(Options)
-        for index, Loc in pairs(Options) do
-            CurrentLocation = index
+    Flag = "Dropdown3",
+    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
+        for index, locationName in pairs(Locations) do -- Лучше использовать pairs для словарей
+            if locationName == Option then
+                CurrentLocation = index
+                break -- Выходим из цикла, когда нашли соответствие
+            end
         end
     end,
 })
 
-local Divider = MainTab:CreateDivider()
+local Divider3 = MainTab:CreateDivider() -- Переименовал переменную, чтобы не было конфликта имен
 
 local BlockWorlds = workspace:WaitForChild("__THINGS").BlockWorlds
 
@@ -125,46 +125,44 @@ local Button = MainTab:CreateButton({
     end,
 })
 
+local function clearHighlightsForLocation() -- Функция для очистки хайлайтов, чтобы избежать дублирования кода
+    if CurrentLocation then
+        if FarmType == 1 then -- Проверка FarmType здесь избыточна, так как функция используется только для Xray
+            local Path = "Blocks_" .. CurrentLocation
+            if BlockWorlds:FindFirstChild(Path) then
+                local Blocks = BlockWorlds:FindFirstChild(Path)
+                for _, block in ipairs(Blocks:GetChildren()) do -- ipairs для массивов
+                    if block and block:FindFirstChild(HighlightXrayName) then
+                        block:FindFirstChild(HighlightXrayName):Destroy()
+                    end
+                end
+            end
+        end
+    end
+end
+
+
 function farmingToggled(IsToggled)
+    if debounce then return end -- Упрощенная проверка debounce
+    debounce = true
+    IsFarming = not IsFarming
 
-    if not debounce then
-        debounce = true
-        IsFarming = not IsFarming
+    task.delay(0.2, function() -- Уменьшил задержку debounce
+        debounce = false
+    end)
 
-        task.delay(1, function()
-            debounce = false
-        end)
-    else
-        return
-    end
 
-    if not IsToggled then
-        Button:Set("Start Farming")
-    else
+    if IsFarming then -- Исправлено: проверка IsFarming, а не IsToggled
         Button:Set("Stop Farming")
-    end
-
-    if IsToggled then
+        clearHighlightsForLocation() -- Очищаем старые хайлайты перед добавлением новых
         if CurrentLocation then
             if FarmType == 1 then
-                print("CurrentLocation: ",CurrentLocation)
-                local Path = "Blocks_"..CurrentLocation
+                local Path = "Blocks_" .. CurrentLocation
                 if BlockWorlds:FindFirstChild(Path) then
-                    print("Path Finded: ",Path)
                     local Blocks = BlockWorlds:FindFirstChild(Path)
-
-                    for i, block in Blocks:GetChildren() do
-                        if block then
-                            if block:FindFirstChild(HighlightXrayName) then
-                                block:FindFirstChild(HighlightXrayName):Destroy()
-                            end
-                        end
-                    end
-
-                    for i, block in Blocks:GetChildren() do
+                    for _, block in ipairs(Blocks:GetChildren()) do -- ipairs для массивов
                         if block then
                             if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                                print("Finded")
                                 local Highlight = Instance.new("Highlight", block)
                                 Highlight.Name = HighlightXrayName
                                 Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -172,55 +170,37 @@ function farmingToggled(IsToggled)
                         end
                     end
                 end
-            end 
+            end
         end
     else
-        if CurrentLocation then
-            if FarmType == 1 then
-                print("CurrentLocation: ",CurrentLocation)
-                local Path = "Blocks_"..CurrentLocation
-                if BlockWorlds:FindFirstChild(Path) then
-                    print("Path Finded: ",Path)
-                    local Blocks = BlockWorlds:FindFirstChild(Path)
-
-                    for i, block in Blocks:GetChildren() do
-                        if block then
-                            if block:FindFirstChild(HighlightXrayName) then
-                                block:FindFirstChild(HighlightXrayName):Destroy()
-                            end
-                        end
-                    end
-                end
-            end 
-        end
+        Button:Set("Start Farming")
+        clearHighlightsForLocation() -- Очищаем хайлайты при остановке фарма
     end
 end
 
-local SettingsTab = Window:CreateTab("Settings", nil) -- Title, Image
+local SettingsTab = Window:CreateTab("Settings", nil)
 local SettingsSection = SettingsTab:CreateSection("SettingsSection")
 SettingsSection:Set("Theme")
 
 local Themes = {
-    "Default";
-    "Amber Glow";
-    "Amethyst";
-    "Bloom";
-    "Dark Blue";
-    "Green";
-    "Light";
-    "Ocean";
-    "Serenity";
+    "Default",
+    "Amber Glow",
+    "Amethyst",
+    "Bloom",
+    "Dark Blue",
+    "Green",
+    "Light",
+    "Ocean",
+    "Serenity",
 }
 
-local Dropdown = SettingsTab:CreateDropdown({
+local DropdownTheme = SettingsTab:CreateDropdown({ -- Переименовал переменную, чтобы не было конфликта имен
     Name = "Theme",
     Options = Themes,
     CurrentOption = "Default",
     MultipleOptions = false,
-    Flag = "Dropdown4", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(Options)
-        for index, theme in ipairs(Options) do
-            Window.ModifyTheme(tostring(theme))
-        end
+    Flag = "Dropdown4",
+    Callback = function(Option) -- Изменено на Option, так как приходит только 1 значение
+        Window:ModifyTheme(Option) -- Исправлено: прямое использование Option
     end,
 })
