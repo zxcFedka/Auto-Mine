@@ -7,7 +7,7 @@ Name = "Auto Mine",
 Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
 LoadingTitle = "Pidaras Hub",
 LoadingSubtitle = "by zxcFedka",
-Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+Theme = "Default",
 
 DisableRayfieldPrompts = false,
 DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
@@ -36,9 +36,9 @@ Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW 
 }
 })
 
-local Tab = Window:CreateTab("Home", nil) -- Title, Image
-local Section = Tab:CreateSection("Mine")
-Section:Set("Section Example")
+local MainTab = Window:CreateTab("Home", nil) -- Title, Image
+local MineSection = MainTab:CreateSection("Mine")
+MineSection:Set("Finding Ore")
 
 local Ores = {
     "Sapphire",
@@ -49,14 +49,17 @@ local Ores = {
 
 local StandartOre = "Sapphire"
 
-local Dropdown = Tab:CreateDropdown({
+local FindingOre = StandartOre
+
+local Dropdown = MainTab:CreateDropdown({
     Name = "Mining Ore",
-    Options = {Ores},
+    Options = Ores,
     CurrentOption = {StandartOre},
     MultipleOptions = false,
     Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
-    -- The function that takes place when the selected option is changed
-    -- The variable (Options) is a table of strings for the current selected options
+        
     end,
- })
+})
+
+local SettingsTab = Window:CreateTab("Settings", nil)
