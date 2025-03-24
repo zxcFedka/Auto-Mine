@@ -104,7 +104,7 @@ local Dropdown = MainTab:CreateDropdown({
     Flag = "Dropdown3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
         for index, Loc in pairs(Options) do
-            CurrentLocation = Loc
+            CurrentLocation = index
         end
     end,
 })
