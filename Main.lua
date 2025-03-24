@@ -118,7 +118,30 @@ local HighlightXrayName = "Xrayhighlight"
 local debounce = false
 local IsFarming = false
 
-local function farmingToggled(IsToggled)
+local Button = MainTab:CreateButton({
+    Name = "Start Farming",
+    Callback = function()
+        if not debounce then
+            debounce = true
+            IsFarming = not IsFarming
+
+            farmingToggled(IsFarming)
+
+            task.delay(1, function()
+                debounce = false
+            end)
+        end
+    end,
+})
+
+function farmingToggled(IsToggled)
+
+    if not IsToggled then
+        Button:Set("Start Farming")
+    else
+        Button:Set("Stop Farming")
+    end
+
     if IsToggled then
         if CurrentLocation then
             if FarmType == 1 then
@@ -149,26 +172,27 @@ local function farmingToggled(IsToggled)
                 end
             end 
         end
+    else
+        if CurrentLocation then
+            if FarmType == 1 then
+                print("CurrentLocation: ",CurrentLocation)
+                local Path = "Blocks_"..CurrentLocation
+                if BlockWorlds:FindFirstChild(Path) then
+                    print("Path Finded: ",Path)
+                    local Blocks = BlockWorlds:FindFirstChild(Path)
+
+                    for i, block in Blocks:GetChildren() do
+                        if block then
+                            if block:FindFirstChild(HighlightXrayName) then
+                                block:FindFirstChild(HighlightXrayName):Destroy()
+                            end
+                        end
+                    end
+                end
+            end 
+        end
     end
 end
-
-local Toggle = MainTab:CreateToggle({
-    Name = "Farming",
-    CurrentValue = false,
-    Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(Value)
-        if not debounce then
-            debounce = true
-            IsFarming = Value
-
-            farmingToggled(Value)
-
-            task.delay(1, function()
-                debounce = false
-            end)
-        end
-    end,
-})
 
 local SettingsTab = Window:CreateTab("Settings", nil) -- Title, Image
 local SettingsSection = SettingsTab:CreateSection("SettingsSection")
