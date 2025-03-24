@@ -135,14 +135,17 @@ Button = MainTab:CreateButton({
     end,
 })
 
+local AddedBlocks = {}
+
 function clearHighlightsForLocation()
     print("Clear")
     if CurrentLocation then
         if FarmType == 1 then
             local Path = "Blocks_" .. CurrentLocation
             if BlockWorlds:FindFirstChild(Path) then
-                local Blocks = BlockWorlds:FindFirstChild(Path)
-                for _, block in ipairs(Blocks:GetChildren()) do
+                AddedBlocks = {}
+
+                for _, block in AddedBlocks do
                     if block and block:FindFirstChild(HighlightXrayName) then
                         block:FindFirstChild(HighlightXrayName):Destroy()
                     end
@@ -151,8 +154,6 @@ function clearHighlightsForLocation()
         end
     end
 end
-
-local AddedBlocks = {}
 
 function farmingToggled(IsToggled)
     if debounce then return end
@@ -163,6 +164,8 @@ function farmingToggled(IsToggled)
         debounce = false
     end)
 
+    AddedBlocks = {}
+
     if IsFarming then
         Button:Set("Stop Farming")
         if CurrentLocation then
@@ -171,16 +174,20 @@ function farmingToggled(IsToggled)
                 if BlockWorlds:FindFirstChild(Path) then
                     local Blocks = BlockWorlds:FindFirstChild(Path)
 
-                    for i,block in AddedBlocks do
-                        if block then
-                            if block:FindFirstChild(HighlightXrayName) then
-                                block:FindFirstChild(HighlightXrayName):Destroy()
-                            end
-
-                            local Highlight = Instance.new("Highlight", block)
-                            Highlight.Name = HighlightXrayName
-                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    for i,block in Blocks:GetChildren() do
+                        if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
+                            AddedBlocks[block] = true
                         end
+                    end
+
+                    for i,block in AddedBlocks do
+                        if block and block:FindFirstChild(HighlightXrayName) then
+                            block:FindFirstChild(HighlightXrayName):Destroy()
+                        end
+
+                        local Highlight = Instance.new("Highlight", block)
+                        Highlight.Name = HighlightXrayName
+                        Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     end
 
                     Blocks.ChildAdded:Connect(function(block)
