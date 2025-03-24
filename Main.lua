@@ -122,10 +122,10 @@ local function farmingToggled(IsToggled)
     if IsToggled then
         if CurrentLocation then
             if FarmType == 1 then
-                print("Success")
+                print("CurrentLocation: ",CurrentLocation)
                 local Path = "Blocks_"..CurrentLocation
                 if BlockWorlds:FindFirstChild(Path) then
-                    print("Path Finded")
+                    print("Path Finded: ",Path)
                     local Blocks = BlockWorlds:FindFirstChild(Path)
 
                     for i, block in Blocks:GetChildren() do
