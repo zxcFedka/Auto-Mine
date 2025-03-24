@@ -115,22 +115,30 @@ local BlockWorlds = workspace:WaitForChild("__THINGS").BlockWorlds
 
 local HighlightXrayName = "Xrayhighlight"
 
+local debounce = false
+local IsFarming = false
+
 local function farmingToggled(IsToggled)
     if IsToggled then
         if CurrentLocation then
             if FarmType == 1 then
+                print("Success")
                 local Path = "Blocks_"..CurrentLocation
-                if BlockWorlds:WaitForChild(Path) then
-                    local Blocks = BlockWorlds:WaitForChild(Path)
+                if BlockWorlds:FindFirstChild(Path) then
+                    print("Path Finded")
+                    local Blocks = BlockWorlds:FindFirstChild(Path)
 
                     for i, block in Blocks:GetChildren() do
-                        if block:FindFirstChild(HighlightXrayName) then
-                            block:FindFirstChild(HighlightXrayName):Destroy()
+                        if block then
+                            if block:FindFirstChild(HighlightXrayName) then
+                                block:FindFirstChild(HighlightXrayName):Destroy()
+                            end
                         end
                     end
 
                     for i, block in Blocks:GetChildren() do
                         if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
+                            print("Finded")
                             local Highlight = Instance.new("Highlight", block)
                             Highlight.Name = Highlight
                             Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -141,9 +149,6 @@ local function farmingToggled(IsToggled)
         end
     end
 end
-
-local IsFarming = false
-local debounce = false
 
 local Toggle = MainTab:CreateToggle({
     Name = "Farming",
@@ -156,7 +161,7 @@ local Toggle = MainTab:CreateToggle({
 
             farmingToggled(Value)
 
-            task.delay(1,function ()
+            task.delay(1, function()
                 debounce = false
             end)
         end
