@@ -84,23 +84,84 @@ local Dropdown = MainTab:CreateDropdown({
     end,
 })
 
-local IsFarming = false
+local Divider = MainTab:CreateDivider()
 
+local Locations = {
+    [1] = "Mining Ore",
+    [2] = "Ancient Cave",
+    [3] = "Frozen Echo",
+    [4] = "Deep Abyss",
+    [5] = "Abstract Void",
+}
+
+local CurrentLocation = 1
+
+local Dropdown = MainTab:CreateDropdown({
+    Name = "Location",
+    Options = Locations,
+    CurrentOption = {Locations[CurrentLocation]},
+    MultipleOptions = false,
+    Flag = "Dropdown3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Options)
+        for index, Loc in pairs(Options) do
+            CurrentLocation = Loc
+        end
+    end,
+})
+
+local Divider = MainTab:CreateDivider()
+
+local BlockWorlds = workspace:WaitForChild("_THINGS").BlockWorlds
+
+local HighlightXrayName = "Xrayhighlight"
+
+local function farmingToggled(IsToggled)
+    if IsToggled then
+        if CurrentLocation then
+            if FarmType == 1 then
+                local Path = "Blocks_"..CurrentLocation
+                if BlockWorlds:WaitForChild(Path) then
+                    local Blocks = BlockWorlds:WaitForChild(Path)
+
+                    for i, block in Blocks:GetChildren() do
+                        if block:FindFirstChild(HighlightXrayName) then
+                            block:FindFirstChild(HighlightXrayName):Destroy()
+                        end
+                    end
+
+                    for i, block in Blocks:GetChildren() do
+                        if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
+                            local Highlight = Instance.new("Highlight", block)
+                            Highlight.Name = Highlight
+                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        end
+                    end
+                end
+            end 
+        end
+    end
+end
+
+local IsFarming = false
 local debounce = false
 
-local Button = MainTab:CreateButton({
-    Name = "Start",
-    Callback = function()
+local Toggle = MainTab:CreateToggle({
+    Name = "Farming",
+    CurrentValue = false,
+    Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
         if not debounce then
             debounce = true
-            IsFarming = not IsFarming
+            IsFarming = Value
+
+            farmingToggled(Value)
 
             task.delay(1,function ()
                 debounce = false
             end)
         end
     end,
-})
+ })
 
 local SettingsTab = Window:CreateTab("Settings", nil) -- Title, Image
 local SettingsSection = SettingsTab:CreateSection("SettingsSection")
@@ -123,18 +184,10 @@ local Dropdown = SettingsTab:CreateDropdown({
     Options = Themes,
     CurrentOption = "Default",
     MultipleOptions = false,
-    Flag = "Dropdown3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Flag = "Dropdown4", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Options)
         for index, theme in ipairs(Options) do
             Window.ModifyTheme(tostring(theme))
         end
     end,
 })
-
-local RunService = game:GetService("RunService")
-
-RunService.Heartbeat:Connect(function ()
-    if IsFarming then
-        
-    end
-end)
