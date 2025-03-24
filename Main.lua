@@ -38,3 +38,4 @@ local Window = Rayfield:CreateWindow({
 
 local Tab = Window:CreateTab("Home", nil) -- Title, Image
 local Section = Tab:CreateSection("Mine")
+Section:Set("Section Example")
