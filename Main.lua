@@ -10,9 +10,9 @@ local debugLabel
 if player.PlayerGui:FindFirstChild("DebugGui") then
     debugLabel = player.PlayerGui:FindFirstChild("DebugGui").DebugLabel
 else
-    local DebugGui = Instance.new("PlayerGui", player.PlayerGui)
+    local DebugGui = Instance.new("ScreenGui", player.PlayerGui)
     DebugGui.Name = "DebugGui"
-    
+
     debugLabel = Instance.new("TextLabel", DebugGui)
     debugLabel.Name = "DebugLabel"
 end
@@ -163,10 +163,28 @@ local Toggle = MainTab:CreateToggle({
     end,
 })
 
+local function FoundPath()
+
+    for _,object in BlockWorlds:GetChildren() do
+        if string.find(object.Name, "Blocks_") then
+            print(object)
+            return object
+        else
+            Rayfield:Notify({
+                Title = "Error", -- English notification
+                Content = "Something went wrong", -- English notification
+                Duration = 3,
+                Image = 4483362458,
+            })
+
+            return nil
+        end
+    end
+end
+
 function Farm(ToggleValue)
     if CurrentLocation then
-        local Path = "Blocks_" .. CurrentLocation
-        if BlockWorlds:FindFirstChild(Path) then
+        if FoundPath() then
             if ToggleValue then
                 update()
 
@@ -177,7 +195,7 @@ function Farm(ToggleValue)
                     Image = 4483362458,
                 })
 
-                local Blocks = BlockWorlds:FindFirstChild(Path)
+                local Blocks = FoundPath()
 
                 update()
 
