@@ -4,6 +4,19 @@ local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/Siri
 
 print("Rayfield Loaded") -- Keep this print for initial load confirmation in console
 
+local player = game.Players.LocalPlayer
+local debugLabel
+
+if player.PlayerGui:FindFirstChild("DebugGui") then
+    debugLabel = player.PlayerGui:FindFirstChild("DebugGui").DebugLabel
+else
+    local DebugGui = Instance.new("PlayerGui", player.PlayerGui)
+    DebugGui.Name = "DebugGui"
+    
+    debugLabel = Instance.new("TextLabel", DebugGui)
+    debugLabel.Name = "DebugLabel"
+end
+
 local Window = Rayfield:CreateWindow({
     Name = "Auto Mine",
     Icon = 0,
