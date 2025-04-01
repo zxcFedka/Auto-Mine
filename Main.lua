@@ -73,6 +73,8 @@ local Ores = {
     "BasicChest",
     "RareChest",
     "EpicChest",
+    "Onyx",
+    "Topaz"
 }
 
 local function FindBlockWorldsPath()
