@@ -78,6 +78,7 @@ local Ores = {
 local function FindBlockWorldsPath()
     for _, block in BlockWorlds:GetChildren() do
         if string.find(block.Name, "Blocks_") then
+            print("Location: "..block.Name)
             return block
         end
     end
@@ -86,6 +87,7 @@ end
 
 local function refreshOres()
     oresByType = {}
+
     if FindBlockWorldsPath() then
         for _, oreType in ipairs(Ores) do
             oresByType[oreType] = {}
@@ -102,6 +104,7 @@ local function refreshOres()
     else
         print("-> refreshOres(): Путь BlockWorlds не найден!")
     end
+
 end
 
 local function randomOre()
