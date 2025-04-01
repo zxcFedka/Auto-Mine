@@ -2,7 +2,7 @@ if not game.PlaceId == 8737899170 then return end
 
 local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
 
-print("Rayfield Loaded") -- Keep this print for initial load confirmation in console
+print("Rayfield Loaded")
 
 local player = game.Players.LocalPlayer
 local debugLabel
@@ -48,209 +48,233 @@ local Window = Rayfield:CreateWindow({
 })
 
 local MainTab = Window:CreateTab("Home", nil)
-local MineSection = MainTab:CreateSection("Mine")
-MineSection:Set("Ore and Location Settings") -- English section title
+local MineSection = MainTab:CreateSection("AutoFarm")
+MineSection:Set("Settings")
+
+local BlockWorlds = workspace.__THINGS.BlockWorlds
+local FindingOre = "Sapphire" -- Дефолтное значение, изменится через UI
+local path = nil
+local oresByType = {} -- Изменено: Теперь храним руды по типам
+local ChoosedOre = nil
+local Connection = nil
+local IsToggled = false -- Состояние телепортации: false - выключена, true - включена
+
+local UserInputService = game:GetService("UserInputService")
 
 local Ores = {
     "Sapphire",
     "Ruby",
     "Amethyst",
     "Emerald",
+    "Rainbow",
+    "Quartz",
+    "BasicChest",
+    "RareChest",
+    "EpicChest",
 }
 
-local Locations = {
-    [1] = "Mining Ore",
-    [2] = "Ancient Cave",
-    [3] = "Frozen Echo",
-    [4] = "Deep Abyss",
-    [5] = "Abstract Void",
-}
+local function FindBlockWorldsPath()
+    for _, block in BlockWorlds:GetChildren() do
+        if string.find(block.Name, "Blocks_") then
+            return block
+        end
+    end
+    return nil
+end
 
-local FindingOre = "Sapphire"
-local AddedBlocks = {}
-local HighlightXrayName = "XrayHighlight"
-local CurrentLocation = 1
-
-local XrayToggled = false
-
-local BlockWorlds = workspace:WaitForChild("__THINGS").BlockWorlds
-
-local function update()
-    print("Updating block list for", Locations[CurrentLocation], "and ore", FindingOre) -- Removed print
-
-    if CurrentLocation then
-        local Path = "Blocks_" .. CurrentLocation
-        if BlockWorlds:FindFirstChild(Path) then
-            local Blocks = BlockWorlds:FindFirstChild(Path)
-            for block, i in Blocks:GetChildren() do
-                if block and block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                    if block:FindFirstChild(HighlightXrayName) then
-                        block:FindFirstChild(HighlightXrayName):Destroy()
-                    end
-                end
+local function refreshOres()
+    oresByType = {} -- Очищаем старые данные
+    if FindBlockWorldsPath() then
+        for _, oreType in ipairs(Ores) do
+            oresByType[oreType] = {} -- Инициализируем пустой список для каждого типа руды
+        end
+        for _, block in FindBlockWorldsPath():GetChildren() do
+            local oreId = block:GetAttribute("id")
+            if oresByType[oreId] then -- Проверяем, есть ли такой тип руды в списке Ores
+                table.insert(oresByType[oreId], block)
             end
-        else
-            warn("Location folder not found:", Path) -- Keep warn in English
+        end
+        for oreType, oreList in pairs(oresByType) do
+            print(string.format("-> refreshOres(): Найдено %d блоков типа %s", #oreList, oreType))
         end
     else
-        warn("CurrentLocation is undefined") -- Keep warn in English
+        print("-> refreshOres(): Путь BlockWorlds не найден!")
     end
 end
 
+local function randomOre()
+    if not IsToggled then return end -- Выходим, если AutoFarm выключен
+
+    local selectedOreType = FindingOre
+    local availableOre = nil
+
+    -- Пытаемся найти выбранную руду
+    if oresByType[selectedOreType] and #oresByType[selectedOreType] > 0 then
+        availableOre = oresByType[selectedOreType][math.random(1, #oresByType[selectedOreType])]
+        print(string.format("  -> randomOre(): Выбрана руда %s (выбранная игроком)", selectedOreType))
+    else
+        -- Если выбранной руды нет, ищем любую другую по приоритету из списка Ores
+        for _, oreType in ipairs(Ores) do
+            if oreType ~= selectedOreType and oresByType[oreType] and #oresByType[oreType] > 0 then
+                availableOre = oresByType[oreType][math.random(1, #oresByType[oreType])]
+                print(string.format("  -> randomOre(): Выбрана руда %s (альтернативная)", oreType))
+                break -- Нашли первую попавшуюся и выходим
+            end
+        end
+    end
+
+    -- if not availableOre then
+    --     print("  -> randomOre(): Нет доступной руды ни одного типа!")
+    --     ChoosedOre = nil -- Сбрасываем ChoosedOre, чтобы остановить телепортацию
+    --     stopAutoFarm() -- Останавливаем AutoFarm, если нет руды
+    --     return
+    -- end
+
+    local Player = game.Players.LocalPlayer
+    local Char = Player.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then
+        print("  -> randomOre(): Персонаж или HumanoidRootPart не найдены!")
+        return
+    end
+    local HumanoidRootPart = Char.HumanoidRootPart
+
+    ChoosedOre = availableOre
+
+    if Connection then
+        Connection:Disconnect()
+        Connection = nil
+    end
+
+    local RunService = game:GetService("RunService")
+    Connection = RunService.RenderStepped:Connect(function()
+        if ChoosedOre and ChoosedOre.Parent then -- Проверяем, что ChoosedOre существует и не удален
+            if HumanoidRootPart then
+                HumanoidRootPart.CFrame = ChoosedOre.CFrame
+            else
+                print("  -> RenderStepped: HumanoidRootPart стал nil!")
+            end
+        else
+            print("  -> RenderStepped: ChoosedOre стал nil или удален, поиск новой руды...")
+            Connection:Disconnect() -- Отключаем текущее соединение, чтобы не было ошибок
+            Connection = nil
+            ChoosedOre = nil
+			refreshOres()
+            randomOre() -- Ищем новую руду
+        end
+    end)
+end
+
+function startAutoFarm()
+    if not IsToggled then
+        IsToggled = true
+        print("AutoFarm включен")
+        randomOre()
+
+		Rayfield:Notify({
+            Title = "Auto Farm",
+            Content = "Enabled",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+end
+
+function stopAutoFarm()
+    if IsToggled then
+        IsToggled = false
+        print("AutoFarm выключен")
+        if Connection then
+            Connection:Disconnect()
+            Connection = nil
+            ChoosedOre = nil
+        end
+
+		Rayfield:Notify({
+            Title = "Auto Farm",
+            Content = "Disabled",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+end
+
+
 local DropdownOre = MainTab:CreateDropdown({
-    Name = "Mining Ore", -- English dropdown name
+    Name = "Mining Ore",
     Options = Ores,
     CurrentOption = "Sapphire",
     MultipleOptions = false,
     Flag = "Dropdown1",
     Callback = function(Option)
-        local choosedore = Option
-        -- print("Selected Ore:", choosedore) -- Removed print
+        local choosedore = Option[1]
         FindingOre = choosedore
-        if XrayToggled then
-            Farm(true)
+        print("Выбрана руда для AutoFarm:", choosedore)
+        refreshOres() -- Обновляем список руды при смене типа руды
+        if IsToggled then -- Если AutoFarm уже включен, перезапускаем с новой рудой
+            randomOre()
         end
     end,
 })
 
 local Divider1 = MainTab:CreateDivider()
 
-local DropdownLocation = MainTab:CreateDropdown({
-    Name = "Location", -- English dropdown name
-    Options = Locations,
-    CurrentOption = Locations[CurrentLocation],
-    MultipleOptions = false,
-    Flag = "Dropdown3",
-    Callback = function(Option)
-        -- Example of print "Option":
-        -- 1 Mining Ore
-        -- 1 Ancient Cave
-        for i, locationName in ipairs(Option) do
-            for index,location in Locations do
-                if locationName == location then
-                    CurrentLocation = index
-                    print("Selected Location:", locationName, "Index:", index) -- Removed print
-                    if XrayToggled then
-                        Farm(true)
-                    end
+local ToggleAutoFarm = MainTab:CreateToggle({
+    Name = "AutoFarm",
+    CurrentValue = false,
+    Flag = "ToggleAutoFarm",
+    Callback = function(Value)
+        if Value then
+            startAutoFarm()
+        else
+            stopAutoFarm()
+        end
+    end,
+})
+
+
+path = FindBlockWorldsPath()
+
+if path then
+    refreshOres()
+    print("Первоначальное состояние oresByType после refreshOres:")
+    for oreType, oreList in pairs(oresByType) do
+        print(string.format("  - %s: %d блоков", oreType, #oreList))
+    end
+
+
+    path.ChildAdded:Connect(function(block)
+        local oreId = block:GetAttribute("id")
+        if oresByType[oreId] then
+            table.insert(oresByType[oreId], block)
+            print(string.format("-> ChildAdded: Блок %s (%s) добавлен. Теперь блоков %s: %d", block.Name, oreId, oreId, #oresByType[oreId]))
+            if IsToggled then
+                randomOre()
+            end
+        end
+    end)
+
+    path.ChildRemoved:Connect(function(block)
+        local oreId = block:GetAttribute("id")
+        if oresByType[oreId] then
+            for i, v in ipairs(oresByType[oreId]) do
+                if v == block then
+                    table.remove(oresByType[oreId], i)
+                    print(string.format("  -> ChildRemoved: Блок %s (%s) удален. Теперь блоков %s: %d", block.Name, oreId, oreId, #oresByType[oreId]))
                     break
                 end
             end
-        end
-    end,
-})
 
-local Divider3 = MainTab:CreateDivider()
+            if ChoosedOre == block then
+                print("  -> ChildRemoved: Удаленный блок был ChoosedOre.")
+                ChoosedOre = nil
+                print("  -> ChildRemoved: ChoosedOre сброшен в nil.")
 
-local debounce = false
-
-local Toggle = MainTab:CreateToggle({
-    Name = "Xray",
-    CurrentValue = false,
-    Flag = "Toggle1",
-    Callback = function(Value)
-        if not debounce then
-            debounce = true
-            
-            XrayToggled = Value
-
-            task.delay(0.2, function()
-                debounce = false
-            end)
-    
-            Farm(Value)
-        end
-    end,
-})
-
-local function FoundPath()
-
-    for _,object in BlockWorlds:GetChildren() do
-        if string.find(object.Name, "Blocks_") then
-            print(object)
-            return object
-        else
-            Rayfield:Notify({
-                Title = "Error", -- English notification
-                Content = "Something went wrong", -- English notification
-                Duration = 3,
-                Image = 4483362458,
-            })
-
-            return nil
-        end
-    end
-end
-
-function Farm(ToggleValue)
-    if CurrentLocation then
-        if FoundPath() then
-            if ToggleValue then
-                update()
-
-                Rayfield:Notify({
-                    Title = "Xray",
-                    Content = "Xray Enabled", -- English notification
-                    Duration = 3,
-                    Image = 4483362458,
-                })
-
-                local Blocks = FoundPath()
-
-                update()
-
-                for block, i in Blocks:GetChildren() do
-                    if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                        if ToggleValue then
-                            local Highlight = Instance.new("Highlight", block)
-                            Highlight.Name = HighlightXrayName
-                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        end
-                    end
+                if IsToggled then
+                    randomOre() -- Попытка найти новую руду, если AutoFarm включен
                 end
-
-                Blocks.ChildAdded:Connect(function(block)
-                    if block:GetAttribute("id") and block:GetAttribute("id") == FindingOre then
-                        if ToggleValue then
-                            local Highlight = Instance.new("Highlight", block)
-                            Highlight.Name = HighlightXrayName
-                            Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        end
-                    end
-                end)
-            else
-                Rayfield:Notify({
-                    Title = "Xray",
-                    Content = "Xray Disabled", -- English notification
-                    Duration = 3,
-                    Image = 4483362458,
-                })
-                Toggle:Set(false)
-                XrayToggled = false
-        
-                update()
             end
-        else
-            Rayfield:Notify({
-                Title = "Error", -- English notification
-                Content = "Please select a valid location", -- English notification
-                Duration = 3,
-                Image = 4483362458,
-            })
-
-            Toggle:Set(false)
-            XrayToggled = false
-            return
         end
-    else
-        Rayfield:Notify({
-            Title = "Error", -- English notification
-            Content = "Something went wrong", -- English notification
-            Duration = 3,
-            Image = 4483362458,
-        })
-
-        XrayToggled = false
-        return
-    end
+    end)
+else
+    print("Путь к BlockWorlds не найден! Скрипт AutoFarm не будет работать.")
 end
