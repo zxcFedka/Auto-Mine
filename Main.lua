@@ -52,6 +52,7 @@ local MineSection = MainTab:CreateSection("AutoFarm")
 MineSection:Set("Settings")
 
 local BlockWorlds = workspace.__THINGS.BlockWorlds
+local Camera = workspace.CurrentCamera
 local BlackList = {}
 local FindingOre = "Sapphire"
 local path = nil
@@ -163,6 +164,11 @@ local function randomOre()
             if ChoosedOre and ChoosedOre.Parent then
                 if HumanoidRootPart then
                     HumanoidRootPart.CFrame = ChoosedOre.CFrame
+
+                    local cameraPosition = Camera.CFrame.Position
+                    local direction = (ChoosedOre.Position - cameraPosition).Unit
+                    local lookAtCFrame = CFrame.lookAt(cameraPosition, ChoosedOre.Position)
+                    Camera.CFrame = lookAtCFrame
                 else
                     print("  -> RenderStepped: HumanoidRootPart стал nil!")
                 end
