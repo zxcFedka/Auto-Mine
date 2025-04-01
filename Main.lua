@@ -52,12 +52,13 @@ local MineSection = MainTab:CreateSection("AutoFarm")
 MineSection:Set("Settings")
 
 local BlockWorlds = workspace.__THINGS.BlockWorlds
-local FindingOre = "Sapphire" -- Дефолтное значение, изменится через UI
+local BlackList = {}
+local FindingOre = "Sapphire"
 local path = nil
-local oresByType = {} -- Изменено: Теперь храним руды по типам
+local oresByType = {}
 local ChoosedOre = nil
 local Connection = nil
-local IsToggled = false -- Состояние телепортации: false - выключена, true - включена
+local IsToggled = false
 
 local UserInputService = game:GetService("UserInputService")
 
@@ -83,14 +84,14 @@ local function FindBlockWorldsPath()
 end
 
 local function refreshOres()
-    oresByType = {} -- Очищаем старые данные
+    oresByType = {}
     if FindBlockWorldsPath() then
         for _, oreType in ipairs(Ores) do
-            oresByType[oreType] = {} -- Инициализируем пустой список для каждого типа руды
+            oresByType[oreType] = {}
         end
         for _, block in FindBlockWorldsPath():GetChildren() do
             local oreId = block:GetAttribute("id")
-            if oresByType[oreId] then -- Проверяем, есть ли такой тип руды в списке Ores
+            if oresByType[oreId] then
                 table.insert(oresByType[oreId], block)
             end
         end
@@ -103,32 +104,43 @@ local function refreshOres()
 end
 
 local function randomOre()
-    if not IsToggled then return end -- Выходим, если AutoFarm выключен
+    if not IsToggled then return end
 
     local selectedOreType = FindingOre
     local availableOre = nil
 
-    -- Пытаемся найти выбранную руду
-    if oresByType[selectedOreType] and #oresByType[selectedOreType] > 0 then
-        availableOre = oresByType[selectedOreType][math.random(1, #oresByType[selectedOreType])]
-        print(string.format("  -> randomOre(): Выбрана руда %s (выбранная игроком)", selectedOreType))
-    else
-        -- Если выбранной руды нет, ищем любую другую по приоритету из списка Ores
-        for _, oreType in ipairs(Ores) do
-            if oreType ~= selectedOreType and oresByType[oreType] and #oresByType[oreType] > 0 then
-                availableOre = oresByType[oreType][math.random(1, #oresByType[oreType])]
-                print(string.format("  -> randomOre(): Выбрана руда %s (альтернативная)", oreType))
-                break -- Нашли первую попавшуюся и выходим
+    -- Фильтрация руд, исключая руды из черного списка
+    local filteredOres = {}
+    if oresByType[selectedOreType] then
+        for _, ore in ipairs(oresByType[selectedOreType]) do
+            if not BlackList[selectedOreType] then -- Проверяем, не заблокирован ли тип руды целиком
+                filteredOres[#filteredOres + 1] = ore
             end
         end
     end
 
-    -- if not availableOre then
-    --     print("  -> randomOre(): Нет доступной руды ни одного типа!")
-    --     ChoosedOre = nil -- Сбрасываем ChoosedOre, чтобы остановить телепортацию
-    --     stopAutoFarm() -- Останавливаем AutoFarm, если нет руды
-    --     return
-    -- end
+    -- Пытаемся найти выбранную руду из отфильтрованного списка
+    if #filteredOres > 0 then
+        availableOre = filteredOres[math.random(1, #filteredOres)]
+        print(string.format("  -> randomOre(): Выбрана руда %s (выбранная игроком, не из черного списка)", selectedOreType))
+    else
+        -- Если выбранной руды нет или все в черном списке, ищем любую другую по приоритету из списка Ores
+        for _, oreType in ipairs(Ores) do
+            if oreType ~= selectedOreType and not BlackList[oreType] and oresByType[oreType] and #oresByType[oreType] > 0 then -- Проверяем, не заблокирован ли тип руды
+                filteredOres = {} -- Очищаем список отфильтрованных руд для нового типа
+                for _, ore in ipairs(oresByType[oreType]) do
+                    if not BlackList[oreType] then -- Дополнительная проверка на всякий случай
+                        filteredOres[#filteredOres + 1] = ore
+                    end
+                end
+                if #filteredOres > 0 then
+                    availableOre = filteredOres[math.random(1, #filteredOres)]
+                    print(string.format("  -> randomOre(): Выбрана руда %s (альтернативная, не из черного списка)", oreType))
+                    break
+                end
+            end
+        end
+    end
 
     local Player = game.Players.LocalPlayer
     local Char = Player.Character
@@ -145,23 +157,28 @@ local function randomOre()
         Connection = nil
     end
 
-    local RunService = game:GetService("RunService")
-    Connection = RunService.RenderStepped:Connect(function()
-        if ChoosedOre and ChoosedOre.Parent then -- Проверяем, что ChoosedOre существует и не удален
-            if HumanoidRootPart then
-                HumanoidRootPart.CFrame = ChoosedOre.CFrame
+    if ChoosedOre then -- Добавлена проверка на nil перед подключением RenderStepped
+        local RunService = game:GetService("RunService")
+        Connection = RunService.RenderStepped:Connect(function()
+            if ChoosedOre and ChoosedOre.Parent then
+                if HumanoidRootPart then
+                    HumanoidRootPart.CFrame = ChoosedOre.CFrame
+                else
+                    print("  -> RenderStepped: HumanoidRootPart стал nil!")
+                end
             else
-                print("  -> RenderStepped: HumanoidRootPart стал nil!")
+                print("  -> RenderStepped: ChoosedOre стал nil или удален, поиск новой руды...")
+                Connection:Disconnect()
+                Connection = nil
+                ChoosedOre = nil
+                refreshOres()
+                randomOre()
             end
-        else
-            print("  -> RenderStepped: ChoosedOre стал nil или удален, поиск новой руды...")
-            Connection:Disconnect() -- Отключаем текущее соединение, чтобы не было ошибок
-            Connection = nil
-            ChoosedOre = nil
-			refreshOres()
-            randomOre() -- Ищем новую руду
-        end
-    end)
+        end)
+    else
+        print("  -> randomOre(): Не найдено доступных руд, включая не из черного списка. Повторная попытка через некоторое время...")
+        task.delay(5, randomOre) -- Повторная попытка через 5 секунд, если руда не найдена
+    end
 end
 
 function startAutoFarm()
@@ -198,6 +215,22 @@ function stopAutoFarm()
     end
 end
 
+local DropdownBlackList = MainTab:CreateDropdown({
+    Name = "Black List",
+    Options = Ores,
+    CurrentOption = nil,
+    MultipleOptions = true,
+    Flag = "Dropdown3",
+    Callback = function(Option)
+        BlackList = {} -- Очищаем BlackList перед обновлением
+        for ore, enabled in pairs(Option) do
+            if enabled then
+                BlackList[ore] = true
+            end
+        end
+        print("BlackList обновлен:", BlackList)
+    end,
+})
 
 local DropdownOre = MainTab:CreateDropdown({
     Name = "Mining Ore",
@@ -209,8 +242,8 @@ local DropdownOre = MainTab:CreateDropdown({
         local choosedore = Option[1]
         FindingOre = choosedore
         print("Выбрана руда для AutoFarm:", choosedore)
-        refreshOres() -- Обновляем список руды при смене типа руды
-        if IsToggled then -- Если AutoFarm уже включен, перезапускаем с новой рудой
+        refreshOres()
+        if IsToggled then
             randomOre()
         end
     end,
@@ -231,7 +264,6 @@ local ToggleAutoFarm = MainTab:CreateToggle({
     end,
 })
 
-
 path = FindBlockWorldsPath()
 
 if path then
@@ -240,7 +272,6 @@ if path then
     for oreType, oreList in pairs(oresByType) do
         print(string.format("  - %s: %d блоков", oreType, #oreList))
     end
-
 
     path.ChildAdded:Connect(function(block)
         local oreId = block:GetAttribute("id")
@@ -270,7 +301,7 @@ if path then
                 print("  -> ChildRemoved: ChoosedOre сброшен в nil.")
 
                 if IsToggled then
-                    randomOre() -- Попытка найти новую руду, если AutoFarm включен
+                    randomOre()
                 end
             end
         end
